@@ -1,0 +1,291 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Golden and black theme - Light mode */
+    --background: 0 0% 2%;
+    --foreground: 45 100% 85%;
+
+    --card: 0 0% 6%;
+    --card-foreground: 45 100% 85%;
+
+    --popover: 0 0% 4%;
+    --popover-foreground: 45 100% 85%;
+
+    --primary: 45 100% 55%;
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 45 100% 85%;
+
+    --muted: 0 0% 8%;
+    --muted-foreground: 45 20% 60%;
+
+    --accent: 45 100% 45%;
+    --accent-foreground: 0 0% 5%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 95%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 8%;
+    --ring: 45 100% 55%;
+
+    --radius: 0.75rem;
+    
+    /* Custom golden gradients */
+    --gold-gradient: linear-gradient(135deg, hsl(45, 100%, 65%) 0%, hsl(35, 100%, 50%) 100%);
+    --gold-gradient-hover: linear-gradient(135deg, hsl(45, 100%, 70%) 0%, hsl(35, 100%, 55%) 100%);
+    --black-gradient: linear-gradient(135deg, hsl(0, 0%, 8%) 0%, hsl(0, 0%, 2%) 100%);
+    --card-gradient: linear-gradient(135deg, hsl(0, 0%, 6%) 0%, hsl(0, 0%, 4%) 100%);
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary;
+}
+
+/* Loading animation */
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .7;
+  }
+}
+
+/* Transaction status indicators */
+.tx-pending {
+  @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+}
+
+.tx-success {
+  @apply bg-green-100 text-green-800 border-green-200;
+}
+
+.tx-error {
+  @apply bg-red-100 text-red-800 border-red-200;
+}
+
+/* Network status indicators */
+.network-connected {
+  @apply bg-green-500;
+}
+
+.network-disconnected {
+  @apply bg-red-500;
+}
+
+.network-switching {
+  @apply bg-yellow-500;
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-lg hover:scale-[1.02];
+}
+
+/* Button focus ring */
+.btn-focus {
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+}
+
+/* Premium Golden Theme Styles */
+.golden-gradient {
+  background: var(--gold-gradient);
+}
+
+.golden-gradient-hover {
+  background: var(--gold-gradient-hover);
+}
+
+.black-gradient {
+  background: var(--black-gradient);
+}
+
+.card-gradient {
+  background: var(--card-gradient);
+}
+
+/* Golden button styles */
+.btn-golden {
+  @apply bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-semibold;
+  @apply hover:from-yellow-300 hover:to-amber-400 transition-all duration-300;
+  @apply shadow-lg hover:shadow-xl hover:shadow-yellow-500/20;
+  @apply border border-yellow-500/50 hover:border-yellow-400;
+}
+
+.btn-golden-outline {
+  @apply border-2 border-yellow-400 text-yellow-400 bg-transparent;
+  @apply hover:bg-yellow-400 hover:text-black transition-all duration-300;
+  @apply shadow-lg hover:shadow-xl hover:shadow-yellow-500/20;
+}
+
+/* Card premium styles */
+.card-premium {
+  @apply bg-gradient-to-br from-gray-900 to-black border border-gray-800;
+  @apply shadow-2xl hover:shadow-yellow-500/10 transition-all duration-500;
+  @apply hover:border-yellow-500/30 hover:-translate-y-1;
+}
+
+/* Golden text effects */
+.text-golden {
+  @apply bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent;
+}
+
+.text-golden-glow {
+  @apply text-yellow-400;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+/* Animated backgrounds */
+.bg-animated-gradient {
+  background: linear-gradient(-45deg, #000000, #1a1a1a, #2d1810, #000000);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Golden shimmer effect */
+.shimmer-gold {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-gold::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(251, 191, 36, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Golden pulse animation */
+.pulse-golden {
+  animation: pulseGold 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulseGold {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(251, 191, 36, 0.6);
+  }
+}
+
+/* Premium glass effect */
+.glass-effect {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+/* Status indicators with golden theme */
+.status-success {
+  @apply bg-emerald-900/50 text-emerald-400 border border-emerald-700/50;
+}
+
+.status-pending {
+  @apply bg-yellow-900/50 text-yellow-400 border border-yellow-700/50;
+}
+
+.status-error {
+  @apply bg-red-900/50 text-red-400 border border-red-700/50;
+}
+
+/* Scrollbar golden theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgb(251, 191, 36), rgb(217, 119, 6));
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgb(253, 224, 71), rgb(251, 191, 36));
+}

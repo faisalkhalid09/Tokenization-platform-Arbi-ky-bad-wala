@@ -1,0 +1,299 @@
+MASTER EXECUTION PROMPT FOR WARP
+Project: Blockchain Tokenization Platform — Functional Demo
+Goal: Produce a fully working demo that lets a user create an ERC-20 token on a public testnet, connect a wallet, view token details, and perform mint/burn/transfer from a web UI. Include a simulated marketplace and admin dashboard using only frontend state (no backend). Final output must include: deployed smart contract address on a testnet, deployed frontend URL, a concise README, and demo assets (screenshots and optionally a short walkthrough script).
+
+GLOBAL RULES
+1) Do not use emojis anywhere (including code, comments, copy, commit messages, or UI text).
+2) Use testnets only: Polygon Mumbai or BNB Smart Chain Testnet. Prefer whichever RPC is configured via .env variables. Do not deploy to mainnet.
+3) No backend and no database. All “marketplace” and “admin” behaviors are simulated purely in the frontend (state + localStorage).
+4) Keep secrets safe. Never hardcode private keys in code. Only read them from .env for CLI deployment (if needed).
+5) Write clear code, small composable modules, and include inline comments where helpful.
+
+OUTPUT CONTRACT (WHAT YOU MUST DELIVER)
+- A monorepo with: /contracts (Hardhat), /app (Next.js), /docs (assets/readme).
+- A deployed ERC-20 contract address on the chosen testnet.
+- A deployed web app URL (Vercel or Netlify).
+- A README that explains setup, deployment, and demo steps.
+- Demo materials: at least 5 screenshots saved in /docs and referenced in README.
+
+REPOSITORY INITIALIZATION
+1) Create a new git repository with the following structure:
+   /
+   ├─ contracts/           (Hardhat project)
+   ├─ app/                 (Next.js 14+ with App Router)
+   ├─ docs/                (screenshots, diagrams, walkthrough script)
+   ├─ package.json         (use npm workspaces to manage /contracts and /app)
+   ├─ README.md
+   ├─ .gitignore
+   └─ .env.example         (document required variables)
+2) Add a root README with: project overview, tech stack, quickstart, scripts, and troubleshooting.
+3) Create .gitignore entries that exclude node_modules, .env, artifacts, cache, and build output.
+
+ENVIRONMENT & DEPENDENCIES
+1) Node.js LTS (>=18).
+2) Root package.json (workspaces):
+   - "workspaces": ["contracts", "app"]
+   - Root scripts for convenience: "bootstrap", "build", "dev", "test", "deploy"
+3) /contracts dependencies:
+   - @nomicfoundation/hardhat-toolbox
+   - hardhat
+   - @openzeppelin/contracts
+   - dotenv
+4) /app dependencies:
+   - next
+   - react, react-dom
+   - ethers
+   - wagmi, viem
+   - zustand (state management) or jotai
+   - recharts (charts)
+   - tailwindcss, postcss, autoprefixer
+   - class-variance-authority, clsx (optional for UI)
+5) Create .env.example at repo root with:
+   # Hardhat/.env (used in /contracts)
+   PRIVATE_KEY="..."
+   POLYGON_MUMBAI_RPC_URL="..."
+   BNB_TESTNET_RPC_URL="..."
+   ETHERSCAN_API_KEY="..."          # optional for verification
+   BSCSCAN_API_KEY="..."            # optional for verification
+
+   # App/.env.local (used in /app)
+   NEXT_PUBLIC_DEFAULT_NETWORK="mumbai"   # "mumbai" or "bsc-testnet"
+   NEXT_PUBLIC_DEFAULT_CHAIN_ID="80001"   # 80001 for Mumbai, 97 for BSC Testnet
+   NEXT_PUBLIC_INFRA_RPC_MUMBAI="..."
+   NEXT_PUBLIC_INFRA_RPC_BNBTEST="..."
+   NEXT_PUBLIC_DEPLOYED_TOKEN_ADDRESS=""  # can be set after first deploy
+6) Never commit a real PRIVATE_KEY. Only commit .env.example.
+
+PHASE 1 — SMART CONTRACTS (HARDHAT)
+1) Initialize Hardhat in /contracts with TypeScript disabled (JavaScript is fine).
+2) hardhat.config.js:
+   - Load dotenv.
+   - Configure networks:
+     mumbai: chainId 80001, url process.env.POLYGON_MUMBAI_RPC_URL, accounts [process.env.PRIVATE_KEY]
+     bscTestnet: chainId 97, url process.env.BNB_TESTNET_RPC_URL, accounts [process.env.PRIVATE_KEY]
+   - Enable etherscan/bscscan verification if API keys are present.
+3) Create contracts/MyToken.sol using OpenZeppelin:
+   - Use pragma ^0.8.20.
+   - Inherit from ERC20, ERC20Burnable, Ownable.
+   - Constructor(name, symbol, initialSupply) mints initialSupply to msg.sender.
+   - Public mint(address to, uint256 amount) onlyOwner.
+   - burn is already provided by ERC20Burnable.
+   - Document that mint requires owner (deployer) until governance is added.
+4) Create scripts/deploy.js that:
+   - Reads name, symbol, and initialSupply from CLI args or environment.
+   - Deploys MyToken and prints the address.
+   - Writes a small JSON artifact to /contracts/deployments/<network>.json with the address and tx hash.
+5) Create test/MyToken.test.js:
+   - Tests name, symbol, decimals, totalSupply after constructor.
+   - Tests owner-only mint.
+   - Tests burn reduces supply.
+   - Tests transfer behavior and balances.
+6) Commands to run (document them in README):
+   - npm run bootstrap (installs deps in workspaces)
+   - cd contracts && npx hardhat test
+   - npx hardhat run scripts/deploy.js --network mumbai --name "DemoToken" --symbol "DMT" --supply "1000000"
+   - Or: --network bscTestnet
+7) On successful deploy, copy the contract address into /app/.env.local as NEXT_PUBLIC_DEPLOYED_TOKEN_ADDRESS.
+
+PHASE 2 — FRONTEND (NEXT.JS + WALLET)
+1) Scaffold Next.js App Router project in /app with TypeScript disabled or enabled (your choice). Configure TailwindCSS.
+2) Create a configuration module app/lib/chains.ts that exports both Mumbai and BSC Testnet metadata:
+   - chain ids, names, RPCs from NEXT_PUBLIC_INFRA_RPC_* envs.
+3) Wallet setup:
+   - Use wagmi + viem + MetaMask injected connector.
+   - Provide a “Connect Wallet” button component with:
+     - Connect, disconnect
+     - Show current account and network
+     - If wrong network, show “Switch to <Configured Network>” and trigger wallet_switchEthereumChain. If chain is missing, wallet_addEthereumChain using the configured metadata.
+4) ABI and Bytecode:
+   - Compile contracts and copy the resulting MyToken.json ABI into /app/contracts/MyToken.json during dev:
+     - Create a root script "copy-artifacts" that copies /contracts/artifacts/contracts/MyToken.sol/MyToken.json to /app/contracts.
+     - Add this step to root "build" and "dev" scripts to keep ABI in sync.
+5) Token Creation Module (client-side deployment from the UI):
+   - A form with fields: name, symbol, initialSupply.
+   - On submit:
+     - Ensure wallet is connected on the target network.
+     - Use ethers.ContractFactory with MyToken bytecode + ABI to deploy from the user’s wallet.
+     - While pending, show a spinner and a “Deployment pending” message with the tx hash.
+     - On success, show the new contract address and append it to a local list saved in localStorage (UserDeployedTokens[]).
+     - Handle user-reject and insufficient funds errors gracefully.
+   - Provide a toggle to switch between “Use existing token address” vs “Deploy new token”.
+6) Token Interaction Panel:
+   - Input: tokenAddress (defaults to NEXT_PUBLIC_DEPLOYED_TOKEN_ADDRESS if set).
+   - Read: name, symbol, decimals, totalSupply, user balance.
+   - Actions: mint (owner only), burn, transfer.
+     - Mint: show an inline note that only owner can mint. If sender != owner, disable button with tooltip “Only owner can mint”.
+     - Burn: require an amount input; call burn(amount).
+     - Transfer: recipient + amount; call transfer(to, amount).
+   - Show toast notifications for pending, success (tx hash), and error states.
+7) UI/UX:
+   - Use Tailwind to create a simple two-column layout on desktop: left (Token Creation/Interaction), right (Marketplace & Analytics).
+   - Mobile: stack vertically.
+   - All text and labels must be clear and concise. No emojis.
+
+PHASE 3 — MARKETPLACE SIMULATION (FRONTEND ONLY)
+1) Static Listings:
+   - Prepare a JSON file app/data/listings.json with 5–8 sample tokens:
+     [
+       { "symbol": "DMT", "name": "Demo Token", "address": "<optional>", "price": 0.12, "volume24h": 12500, "trend": [ ... ] },
+       ...
+     ]
+   - Display cards with name, symbol, mock price, 24h volume.
+2) Simulated Trading Flow:
+   - Create a local portfolio store (zustand) with fields:
+     balances: Record<symbol, number>, tradeHistory: TradeEvent[]
+   - On “Buy”, increase local balance and add a mock trade event with timestamp and notional.
+   - On “Sell”, decrease balance if sufficient and record event; block if insufficient.
+   - This simulation never touches the blockchain; it is purely local state.
+3) Placeholder Analytics:
+   - Use Recharts to render:
+     - Line chart for a selected token’s mock trend data.
+     - Bar chart for user’s portfolio allocation by symbol.
+   - All analytics read from static or locally updated data.
+
+PHASE 4 — ADMIN DASHBOARD (SIMULATED)
+1) Role Toggle:
+   - Provide a switch between “User” and “Admin”. Persist role to localStorage.
+2) Admin Controls (mocked, no chain calls):
+   - Fee settings: a slider or input that updates a value in local state.
+   - User blacklist: a list where admin can add wallet addresses to a local blacklist array.
+   - Audit logs: append admin actions to a local log (timestamped).
+3) Governance Visuals (mocked):
+   - A simple card explaining hypothetical multi-sig approval.
+   - A “Propose Action” button that adds a mock governance proposal object to local state with a status lifecycle (Proposed -> Approved/Rejected) driven by buttons, not votes.
+
+PHASE 5 — SECURITY & COMPLIANCE (MOCKED)
+1) KYC/AML Placeholder:
+   - A “Compliance” section showing where a KYC provider would integrate. Provide text-only stubs and a disabled “Start KYC” button that explains it’s mocked in this demo.
+2) Multi-Signature Simulation:
+   - Represent a multi-sig as a list of 3–5 pseudo-admin addresses stored locally. A mock “approve” action increments approvals. Once approvals >= threshold, mark status as “Approved”.
+3) Audit-Ready Notes:
+   - Add /docs/audit-notes.md summarizing contract approach, dependencies, and test coverage.
+
+PHASE 6 — DOCUMENTATION & DEMO MATERIALS
+1) README sections:
+   - Overview, Features, Architecture Diagram (include a simple PNG or ASCII), Tech Stack, Setup, Environment Variables, Scripts, Deployment, Troubleshooting, Roadmap.
+2) Create /docs/screenshots/ with at least:
+   - wallet-connected.png
+   - token-created.png
+   - token-interaction.png
+   - marketplace.png
+   - admin-dashboard.png
+3) Create /docs/demo-walkthrough.md:
+   - A numbered script the presenter can follow to show the flow in under 5–7 minutes.
+
+PHASE 7 — DEPLOYMENT
+1) Contract Deployment:
+   - Use Hardhat script with the selected network.
+   - After deploy, verify on Polygonscan or BscScan if API key provided.
+   - Copy the address into /app/.env.local as NEXT_PUBLIC_DEPLOYED_TOKEN_ADDRESS.
+   - Commit and push.
+2) Frontend Hosting:
+   - Deploy /app to Vercel or Netlify.
+   - Ensure NEXT_PUBLIC_* environment variables are set in host settings.
+   - Validate wallet connect, chain switch, and token interactions on the hosted site.
+
+ERROR HANDLING & EDGE CASES (REQUIRED)
+1) Wallet not installed:
+   - Show “Install MetaMask” CTA linking to official site. Disable all chain actions.
+2) Wallet connected to wrong network:
+   - Show clear banner: “Wrong network. Click to switch.” Attempt wallet_switchEthereumChain; if unrecognized, call wallet_addEthereumChain with chain metadata.
+3) User rejects signature or transaction:
+   - Show non-blocking toast “Action canceled by user.” Do not treat as error; allow retry.
+4) Insufficient testnet funds:
+   - Detect error code and show guidance: “You need testnet funds to deploy or send transactions. Use the faucet.” Provide a text link placeholder in README for known faucets.
+5) Contract address invalid or not ERC-20:
+   - On entering a custom token address, attempt to read name/symbol/decimals via ERC-20 ABI. If any call fails, show “Invalid ERC-20 contract address” and block actions.
+6) RPC errors and rate limits:
+   - Retry read-only calls with exponential backoff (up to 3 attempts). Show a “Temporarily unavailable” message on persistent failure.
+7) Unit conversions:
+   - Always convert human input amounts to smallest units using decimals read from the token.
+8) Rounding and display:
+   - For balances and totals, format to 4–6 decimals but compute with full precision.
+9) Owner-only mint:
+   - If caller is not owner (queried from Ownable), disable Mint and show tooltip “Only owner can mint.”
+10) Local state integrity for simulated marketplace:
+   - Prevent negative balances, validate numeric inputs, and provide user feedback on invalid entries.
+
+SCRIPTS (ROOT package.json)
+- "bootstrap": "npm i && npm --workspace contracts i && npm --workspace app i"
+- "build": "npm --workspace contracts run build && npm --workspace app run build"
+- "dev": "npm --workspace contracts run compile && node ./scripts/copy-artifacts.js && npm --workspace app run dev"
+- "test": "npm --workspace contracts run test"
+- "deploy:mumbai": "cd contracts && npx hardhat run scripts/deploy.js --network mumbai --name DemoToken --symbol DMT --supply 1000000"
+- "deploy:bsc": "cd contracts && npx hardhat run scripts/deploy.js --network bscTestnet --name DemoToken --symbol DMT --supply 1000000"
+
+IMPLEMENTATION DETAILS TO GENERATE
+A) /contracts/contracts/MyToken.sol
+   - SPDX identifier, pragma ^0.8.20
+   - import OpenZeppelin ERC20, ERC20Burnable, Ownable
+   - constructor(string memory name_, string memory symbol_, uint256 initialSupply_) ERC20(name_, symbol_) { _mint(msg.sender, initialSupply_ * 10 ** decimals()); }
+   - function mint(address to, uint256 amount) external onlyOwner { _mint(to, amount * 10 ** decimals()); }
+   - No emojis, clear comments, NatSpec for public functions.
+
+B) /contracts/scripts/deploy.js
+   - Parse args: --name, --symbol, --supply
+   - Validate inputs and log helpful messages
+   - Deploy and wait for receipt
+   - Write deployments/<network>.json with {address, txHash, blockNumber, timestamp}
+
+C) /contracts/test/MyToken.test.js
+   - Use chai expect, hardhat ethers
+   - Cover constructor, mint, burn, transfer, ownership restriction
+
+D) /app setup
+   - Tailwind init with sensible base styles
+   - Layout with header (ConnectWallet), main grid (Token Module left, Marketplace right), footer
+   - Components:
+     - ConnectWallet.tsx (wagmi hooks, chain switching)
+     - TokenCreator.tsx (deploy form)
+     - TokenPanel.tsx (read name/symbol/decimals/totalSupply/balance + actions mint/burn/transfer)
+     - Marketplace.tsx (listings, buy/sell simulation)
+     - Analytics.tsx (charts from Recharts)
+     - AdminDashboard.tsx (role toggle, fee slider, blacklist, audit log)
+   - State:
+     - usePortfolioStore (balances, tradeHistory)
+     - useAdminStore (role, fees, blacklist, auditLog)
+   - Utilities:
+     - erc20.ts (ABI helpers: readName, readSymbol, readDecimals, readTotalSupply, readBalanceOf, ownerOf via Ownable)
+     - chain.ts (network metadata)
+     - formatting.ts (formatAmount, parseAmount)
+
+E) /app/contracts/MyToken.json
+   - Copied ABI (and bytecode if deploying from UI). If deploying from UI, ensure bytecode is available.
+
+F) /docs
+   - screenshots/*.png
+   - audit-notes.md
+   - demo-walkthrough.md
+
+ACCEPTANCE CRITERIA
+1) User can connect MetaMask on supported testnet or is prompted to switch.
+2) User can deploy a new token by entering name, symbol, and initial supply; sees final address and tx hash.
+3) User can interact with any valid ERC-20 address (read metadata, balance) and perform burn/transfer; mint is gated to owner.
+4) Marketplace simulation works with local portfolio persistence and produces charts.
+5) Admin dashboard toggles role and stores settings locally; actions appear in audit log.
+6) The app builds without type or runtime errors, and the hosted URL works end-to-end.
+7) README precisely explains how to reproduce the demo from scratch.
+
+TROUBLESHOOTING PLAYBOOK
+- If deployment fails due to gas or insufficient funds: show message instructing user to obtain testnet funds from faucet, then retry.
+- If RPC URL is wrong or down: allow switching to the alternate testnet via an environment toggle and document how to update .env.
+- If ABI mismatches the address: prompt user to redeploy or provide correct contract address compiled with the same ABI.
+- If chain switch fails: provide step-by-step manual instructions in a modal (Settings > Networks > Add Network) with chainId and RPC URL.
+
+FUTURE ROADMAP (DOCUMENT ONLY, NOT IMPLEMENTED IN DEMO)
+- Real asset tokenization flows (mint on deposit, burn on redemption).
+- Off-chain services for listings and orderbooks.
+- KYC/AML provider integration and role-based access controls on-chain.
+- Multi-sig admin operations enforced by smart contracts.
+- Audited contracts, formal verification, and test coverage reports.
+
+FINAL STEP
+- After successful deployment of both contract and app, update README with:
+  - Contract address(es) and network
+  - Hosted URL
+  - Basic usage instructions
+  - Known limitations for the demo
+
+Remember: no emojis anywhere; testnet only; no backend; keep secrets out of source control. Execute all steps, generate all code and files, and produce the working demo with the outputs specified in the Output Contract.

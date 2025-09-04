@@ -1,0 +1,34 @@
+{
+  "name": "blockchain-tokenization-platform",
+  "version": "1.0.0",
+  "description": "A blockchain tokenization platform demo with ERC-20 token creation, marketplace simulation, and admin dashboard",
+  "private": true,
+  "workspaces": [
+    "contracts",
+    "app"
+  ],
+  "scripts": {
+    "bootstrap": "npm i && npm --workspace contracts i && npm --workspace app i",
+    "build": "npm --workspace contracts run build && npm --workspace app run build",
+    "dev": "npm --workspace contracts run compile && node ./scripts/copy-artifacts.js && npm --workspace app run dev",
+    "test": "npm --workspace contracts run test",
+    "deploy:mumbai": "cd contracts && npx hardhat run scripts/deploy.js --network mumbai",
+    "deploy:bsc": "cd contracts && npx hardhat run scripts/deploy.js --network bscTestnet",
+    "build:frontend": "npm --workspace app run build",
+    "start:frontend": "npm --workspace app start",
+    "copy-artifacts": "node ./scripts/copy-artifacts.js"
+  },
+  "keywords": [
+    "blockchain",
+    "tokenization",
+    "erc20",
+    "nextjs",
+    "hardhat",
+    "defi"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "fs-extra": "^11.1.1"
+  }
+}
