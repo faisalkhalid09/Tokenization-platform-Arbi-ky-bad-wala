@@ -24,9 +24,14 @@ interface TokenListing {
   id: string
   symbol: string
   name: string
+  address: string
   price: number
   change24h: number
+  volume24h: number
+  marketCap: number
   trend: number[]
+  description: string
+  totalSupply: string
 }
 
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#f97316', '#06b6d4', '#84cc16']

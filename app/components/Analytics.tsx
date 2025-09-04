@@ -24,9 +24,14 @@ interface TokenListing {
   id: string
   symbol: string
   name: string
+  address: string
   price: number
   change24h: number
+  volume24h: number
+  marketCap: number
   trend: number[]
+  description: string
+  totalSupply: string
 }
 
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#f97316', '#06b6d4', '#84cc16']
@@ -77,75 +82,228 @@ export function Analytics() {
     holdings: balances[token.symbol] || 0
   }))
 
-  // Recent trading activity (last 7 days simulation)
-  const tradingActivity = useMemo(() => {
-    const days = 7
-    const data = []
-    const now = new Date()
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now)
-      date.setDate(date.getDate() - i)
-      
-      const dayTrades = tradeHistory.filter(trade => {
-        const tradeDate = new Date(trade.timestamp)
-        return tradeDate.toDateString() === date.toDateString()
-      })
-      
-      const buyVolume = dayTrades
-        .filter(trade => trade.type === 'buy')
-        .reduce((sum, trade) => sum + trade.notional, 0)
-        
-      const sellVolume = dayTrades
-        .filter(trade => trade.type === 'sell')
-        .reduce((sum, trade) => sum + trade.notional, 0)
-      
-      data.push({
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        buy: buyVolume,
-        sell: sellVolume,
-        net: buyVolume - sellVolume
-      })
-    }
-    
-    return data
-  }, [tradeHistory])
-
-  // Custom tooltip for pie chart
-  const PieTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload
-      return (
-        <div className="bg-card border rounded-lg p-3 shadow-lg">
-          <p className="font-medium">{data.name}</p>
-          <p className="text-sm text-muted-foreground">
-            ${data.value.toFixed(2)} ({data.percentage.toFixed(1)}%)
-          </p>
+  return (
+    <div className="space-y-6">
+      {/* Analytics Header */}
+      <div className="bg-card border rounded-lg p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart3 size={20} />
+          <h2 className="text-lg font-semibold">Portfolio Analytics</h2>
         </div>
-      )
-    }
-    return null
-  }
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">Total Portfolio Value</p>
+            <p className="text-2xl font-bold">${totalPortfolioValue.toFixed(2)}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">Active Holdings</p>
+            <p className="text-2xl font-bold">{Object.keys(balances).filter(symbol => balances[symbol] > 0).length}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">Total Trades</p>
+            <p className="text-2xl font-bold">{tradeHistory.length}</p>
+          </div>
+        </div>
+      </div>
 
-  // Custom tooltip for line chart
-  const LineTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-card border rounded-lg p-3 shadow-lg">
-          <p className="font-medium">{label}</p>
-          <p className="text-sm text-green-600">
-            Price: ${payload[0].value.toFixed(4)}
-          </p>
-          {payload[1] && (
-            <p className="text-sm text-blue-600">
-              Volume: {payload[1].value.toFixed(0)}
-            </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Portfolio Allocation Pie Chart */}
+        <div className="bg-card border rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <PieChartIcon size={20} />
+            <h3 className="text-lg font-semibold">Portfolio Allocation</h3>
+          </div>
+          
+          {pieData.length > 0 ? (
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={120}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-80 flex items-center justify-center text-muted-foreground">
+              <p>No portfolio data available</p>
+            </div>
           )}
         </div>
-      )
-    }
-    return null
-  }
 
-  return (
-    <div className=\"space-y-6\">\n      {/* Analytics Header */}\n      <div className=\"bg-card border rounded-lg p-6\">\n        <div className=\"flex items-center gap-2 mb-4\">\n          <BarChart3 size={20} />\n          <h2 className=\"text-lg font-semibold\">Portfolio Analytics</h2>\n        </div>\n        \n        <div className=\"grid grid-cols-1 md:grid-cols-3 gap-4\">\n          <div className=\"text-center\">\n            <p className=\"text-sm text-muted-foreground\">Total Portfolio Value</p>\n            <p className=\"text-2xl font-bold\">${totalPortfolioValue.toFixed(2)}</p>\n          </div>\n          <div className=\"text-center\">\n            <p className=\"text-sm text-muted-foreground\">Active Holdings</p>\n            <p className=\"text-2xl font-bold\">{Object.keys(balances).filter(symbol => balances[symbol] > 0).length}</p>\n          </div>\n          <div className=\"text-center\">\n            <p className=\"text-sm text-muted-foreground\">Total Trades</p>\n            <p className=\"text-2xl font-bold\">{tradeHistory.length}</p>\n          </div>\n        </div>\n      </div>\n\n      <div className=\"grid grid-cols-1 lg:grid-cols-2 gap-6\">\n        {/* Portfolio Allocation Pie Chart */}\n        <div className=\"bg-card border rounded-lg p-6\">\n          <div className=\"flex items-center gap-2 mb-4\">\n            <PieChartIcon size={20} />\n            <h3 className=\"text-lg font-semibold\">Portfolio Allocation</h3>\n          </div>\n          \n          {pieData.length > 0 ? (\n            <div className=\"h-80\">\n              <ResponsiveContainer width=\"100%\" height=\"100%\">\n                <PieChart>\n                  <Pie\n                    data={pieData}\n                    cx=\"50%\"\n                    cy=\"50%\"\n                    innerRadius={60}\n                    outerRadius={120}\n                    paddingAngle={2}\n                    dataKey=\"value\"\n                  >\n                    {pieData.map((entry, index) => (\n                      <Cell key={`cell-${index}`} fill={entry.color} />\n                    ))}\n                  </Pie>\n                  <Tooltip content={<PieTooltip />} />\n                  <Legend \n                    verticalAlign=\"bottom\" \n                    height={36}\n                    formatter={(value, entry: any) => (\n                      <span style={{ color: entry.color }}>{value}</span>\n                    )}\n                  />\n                </PieChart>\n              </ResponsiveContainer>\n            </div>\n          ) : (\n            <div className=\"h-80 flex items-center justify-center text-muted-foreground\">\n              <p>No portfolio data available</p>\n            </div>\n          )}\n        </div>\n\n        {/* Token Price Trend */}\n        <div className=\"bg-card border rounded-lg p-6\">\n          <div className=\"flex items-center gap-2 mb-4\">\n            <TrendingUp size={20} />\n            <h3 className=\"text-lg font-semibold\">{selectedToken.name} Price Trend</h3>\n          </div>\n          \n          <div className=\"h-80\">\n            <ResponsiveContainer width=\"100%\" height=\"100%\">\n              <LineChart data={trendData}>\n                <CartesianGrid strokeDasharray=\"3 3\" className=\"opacity-30\" />\n                <XAxis \n                  dataKey=\"time\" \n                  tick={{ fontSize: 12 }}\n                  tickLine={false}\n                  axisLine={false}\n                />\n                <YAxis \n                  tick={{ fontSize: 12 }}\n                  tickLine={false}\n                  axisLine={false}\n                  tickFormatter={(value) => `$${value.toFixed(3)}`}\n                />\n                <Tooltip content={<LineTooltip />} />\n                <Line \n                  type=\"monotone\" \n                  dataKey=\"price\" \n                  stroke=\"#3b82f6\" \n                  strokeWidth={2}\n                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}\n                  activeDot={{ r: 6, fill: '#3b82f6' }}\n                />\n              </LineChart>\n            </ResponsiveContainer>\n          </div>\n        </div>\n      </div>\n\n      <div className=\"grid grid-cols-1 lg:grid-cols-2 gap-6\">\n        {/* Trading Volume by Token */}\n        <div className=\"bg-card border rounded-lg p-6\">\n          <div className=\"flex items-center gap-2 mb-4\">\n            <BarChart3 size={20} />\n            <h3 className=\"text-lg font-semibold\">24h Volume by Token</h3>\n          </div>\n          \n          <div className=\"h-80\">\n            <ResponsiveContainer width=\"100%\" height=\"100%\">\n              <BarChart data={volumeData}>\n                <CartesianGrid strokeDasharray=\"3 3\" className=\"opacity-30\" />\n                <XAxis \n                  dataKey=\"symbol\" \n                  tick={{ fontSize: 12 }}\n                  tickLine={false}\n                  axisLine={false}\n                />\n                <YAxis \n                  tick={{ fontSize: 12 }}\n                  tickLine={false}\n                  axisLine={false}\n                  tickFormatter={(value) => `$${value}k`}\n                />\n                <Tooltip \n                  formatter={(value: number, name: string) => [\n                    `$${(value * 1000).toLocaleString()}`, \n                    '24h Volume'\n                  ]}\n                  labelStyle={{ color: '#000' }}\n                />\n                <Bar \n                  dataKey=\"volume\" \n                  fill=\"#10b981\"\n                  radius={[4, 4, 0, 0]}\n                />\n              </BarChart>\n            </ResponsiveContainer>\n          </div>\n        </div>\n\n        {/* Trading Activity */}\n        <div className=\"bg-card border rounded-lg p-6\">\n          <div className=\"flex items-center gap-2 mb-4\">\n            <Activity size={20} />\n            <h3 className=\"text-lg font-semibold\">Trading Activity (7 Days)</h3>\n          </div>\n          \n          <div className=\"h-80\">\n            <ResponsiveContainer width=\"100%\" height=\"100%\">\n              <BarChart data={tradingActivity}>\n                <CartesianGrid strokeDasharray=\"3 3\" className=\"opacity-30\" />\n                <XAxis \n                  dataKey=\"date\" \n                  tick={{ fontSize: 12 }}\n                  tickLine={false}\n                  axisLine={false}\n                />\n                <YAxis \n                  tick={{ fontSize: 12 }}\n                  tickLine={false}\n                  axisLine={false}\n                  tickFormatter={(value) => `$${value}`}\n                />\n                <Tooltip \n                  formatter={(value: number, name: string) => {\n                    const label = name === 'buy' ? 'Buy Volume' : name === 'sell' ? 'Sell Volume' : 'Net Flow'\n                    return [`$${value.toFixed(2)}`, label]\n                  }}\n                  labelStyle={{ color: '#000' }}\n                />\n                <Legend />\n                <Bar \n                  dataKey=\"buy\" \n                  name=\"Buy\"\n                  fill=\"#10b981\"\n                  radius={[2, 2, 0, 0]}\n                />\n                <Bar \n                  dataKey=\"sell\" \n                  name=\"Sell\"\n                  fill=\"#ef4444\"\n                  radius={[2, 2, 0, 0]}\n                />\n              </BarChart>\n            </ResponsiveContainer>\n          </div>\n        </div>\n      </div>\n\n      {/* Performance Metrics */}\n      <div className=\"bg-card border rounded-lg p-6\">\n        <h3 className=\"text-lg font-semibold mb-4\">Performance Metrics</h3>\n        \n        <div className=\"grid grid-cols-1 md:grid-cols-4 gap-4\">\n          <div className=\"p-4 bg-muted/50 rounded-lg\">\n            <p className=\"text-sm text-muted-foreground\">Best Performing</p>\n            <p className=\"font-medium\">{listings.reduce((best, token) => \n              token.change24h > best.change24h ? token : best, listings[0]\n            ).symbol}</p>\n            <p className=\"text-sm text-green-600\">\n              +{listings.reduce((best, token) => \n                token.change24h > best.change24h ? token : best, listings[0]\n              ).change24h.toFixed(1)}%\n            </p>\n          </div>\n          \n          <div className=\"p-4 bg-muted/50 rounded-lg\">\n            <p className=\"text-sm text-muted-foreground\">Worst Performing</p>\n            <p className=\"font-medium\">{listings.reduce((worst, token) => \n              token.change24h < worst.change24h ? token : worst, listings[0]\n            ).symbol}</p>\n            <p className=\"text-sm text-red-600\">\n              {listings.reduce((worst, token) => \n                token.change24h < worst.change24h ? token : worst, listings[0]\n              ).change24h.toFixed(1)}%\n            </p>\n          </div>\n          \n          <div className=\"p-4 bg-muted/50 rounded-lg\">\n            <p className=\"text-sm text-muted-foreground\">Most Traded</p>\n            <p className=\"font-medium\">{listings.reduce((highest, token) => \n              token.volume24h > highest.volume24h ? token : highest, listings[0]\n            ).symbol}</p>\n            <p className=\"text-sm text-muted-foreground\">\n              ${listings.reduce((highest, token) => \n                token.volume24h > highest.volume24h ? token : highest, listings[0]\n              ).volume24h.toLocaleString()}\n            </p>\n          </div>\n          \n          <div className=\"p-4 bg-muted/50 rounded-lg\">\n            <p className=\"text-sm text-muted-foreground\">Total Market Cap</p>\n            <p className=\"font-medium\">\n              ${listings.reduce((sum, token) => sum + token.marketCap, 0).toLocaleString()}\n            </p>\n            <p className=\"text-sm text-muted-foreground\">\n              {listings.length} tokens\n            </p>\n          </div>\n        </div>\n      </div>\n    </div>\n  )\n}
+        {/* Token Price Trend */}
+        <div className="bg-card border rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp size={20} />
+            <h3 className="text-lg font-semibold">{selectedToken.name} Price Trend</h3>
+          </div>
+          
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis 
+                  dataKey="time" 
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="price" 
+                  stroke="#3b82f6" 
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, fill: '#3b82f6' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Trading Volume by Token */}
+        <div className="bg-card border rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 size={20} />
+            <h3 className="text-lg font-semibold">24h Volume by Token</h3>
+          </div>
+          
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={volumeData}>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis 
+                  dataKey="symbol" 
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip />
+                <Bar 
+                  dataKey="volume" 
+                  fill="#10b981"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Recent Holdings */}
+        <div className="bg-card border rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity size={20} />
+            <h3 className="text-lg font-semibold">Current Holdings</h3>
+          </div>
+          
+          <div className="space-y-3">
+            {Object.entries(balances).filter(([_, balance]) => balance > 0).length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No holdings yet</p>
+            ) : (
+              Object.entries(balances)
+                .filter(([_, balance]) => balance > 0)
+                .map(([symbol, balance]) => {
+                  const token = listings.find(t => t.symbol === symbol)
+                  const value = balance * (tokenPrices[symbol] || 0)
+                  return (
+                    <div key={symbol} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="font-medium">{symbol}</p>
+                        <p className="text-sm text-muted-foreground">{token?.name || 'Unknown Token'}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">{balance.toFixed(2)} {symbol}</p>
+                        <p className="text-sm text-muted-foreground">${value.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  )
+                })
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Performance Metrics */}
+      <div className="bg-card border rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Performance Metrics</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-muted-foreground">Best Performing</p>
+            <p className="font-medium">{listings.reduce((best, token) => 
+              token.change24h > best.change24h ? token : best, listings[0]
+            ).symbol}</p>
+            <p className="text-sm text-green-600">
+              +{listings.reduce((best, token) => 
+                token.change24h > best.change24h ? token : best, listings[0]
+              ).change24h.toFixed(1)}%
+            </p>
+          </div>
+          
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-muted-foreground">Worst Performing</p>
+            <p className="font-medium">{listings.reduce((worst, token) => 
+              token.change24h < worst.change24h ? token : worst, listings[0]
+            ).symbol}</p>
+            <p className="text-sm text-red-600">
+              {listings.reduce((worst, token) => 
+                token.change24h < worst.change24h ? token : worst, listings[0]
+              ).change24h.toFixed(1)}%
+            </p>
+          </div>
+          
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-muted-foreground">Most Traded</p>
+            <p className="font-medium">{listings.reduce((highest, token) => 
+              token.volume24h > highest.volume24h ? token : highest, listings[0]
+            ).symbol}</p>
+            <p className="text-sm text-muted-foreground">
+              ${listings.reduce((highest, token) => 
+                token.volume24h > highest.volume24h ? token : highest, listings[0]
+              ).volume24h.toLocaleString()}
+            </p>
+          </div>
+          
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-muted-foreground">Total Market Cap</p>
+            <p className="font-medium">
+              ${listings.reduce((sum, token) => sum + token.marketCap, 0).toLocaleString()}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {listings.length} tokens
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
