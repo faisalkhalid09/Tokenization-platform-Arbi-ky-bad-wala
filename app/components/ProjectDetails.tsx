@@ -41,7 +41,7 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
   }: { 
     id: string
     title: string
-    icon: React.ComponentType<{ size: number }>
+    icon: any
     children: React.ReactNode 
   }) => {
     const isExpanded = expandedSections.includes(id)
@@ -53,8 +53,8 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
           className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-yellow-500/5 transition-colors duration-300"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-lg flex items-center justify-center">
-              <Icon size={18} className="text-black" />
+            <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-lg flex items-center justify-center text-black">
+              <Icon {...({ size: 18 } as any)} />
             </div>
             <h2 className="text-xl font-semibold text-golden">{title}</h2>
           </div>
@@ -76,8 +76,8 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
         {/* Header */}
         <div className="text-center mb-12 animate-fade-in">
           <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 btn-golden rounded-2xl flex items-center justify-center shimmer-gold shadow-2xl">
-              <BarChart3 size={40} className="text-black" />
+            <div className="w-20 h-20 btn-golden rounded-2xl flex items-center justify-center shimmer-gold shadow-2xl text-black">
+              <BarChart3 size={40} />
             </div>
           </div>
           
@@ -95,7 +95,7 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
 
         <div className="max-w-5xl mx-auto space-y-6">
           {/* Project Overview */}
-          <Section id="overview" title="Project Overview" icon={Globe}>
+          <Section id="overview" title="Project Overview" icon={Globe as any}>
             <div className="space-y-6 text-gray-300">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -149,7 +149,7 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
           </Section>
 
           {/* Technology Stack */}
-          <Section id="tech-stack" title="Technology Stack" icon={Code2}>
+          <Section id="tech-stack" title="Technology Stack" icon={Code2 as any}>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="glass-effect p-4 rounded-lg">
                 <h3 className="text-lg font-semibold text-golden mb-3 flex items-center gap-2">
@@ -200,7 +200,7 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
           </Section>
 
           {/* Smart Contract Features */}
-          <Section id="smart-contracts" title="Smart Contract Architecture" icon={Shield}>
+          <Section id="smart-contracts" title="Smart Contract Architecture" icon={Shield as any}>
             <div className="space-y-6">
               <div className="glass-effect p-6 rounded-lg">
                 <h3 className="text-lg font-semibold text-golden mb-4">MyToken.sol - ERC-20 Implementation</h3>
@@ -241,7 +241,7 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
           </Section>
 
           {/* Frontend Features */}
-          <Section id="frontend-features" title="Frontend Application Features" icon={Smartphone}>
+          <Section id="frontend-features" title="Frontend Application Features" icon={Smartphone as any}>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="glass-effect p-4 rounded-lg">
@@ -310,7 +310,7 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
           </Section>
 
           {/* Analytics and Visualization */}
-          <Section id="analytics" title="Analytics & Data Visualization" icon={BarChart3}>
+          <Section id="analytics" title="Analytics & Data Visualization" icon={BarChart3 as any}>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="glass-effect p-4 rounded-lg">
                 <h3 className="text-lg font-semibold text-golden mb-3">Portfolio Analytics</h3>
@@ -351,7 +351,7 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
           </Section>
 
           {/* ERC-20 Standards and Compliance */}
-          <Section id="erc20-compliance" title="ERC-20 Standards & Compliance" icon={Shield}>
+          <Section id="erc20-compliance" title="ERC-20 Standards & Compliance" icon={Shield as any}>
             <div className="space-y-6">
               <div className="glass-effect p-6 rounded-lg">
                 <h3 className="text-lg font-semibold text-golden mb-4">ERC-20 Standard Implementation</h3>
@@ -418,7 +418,7 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
           </Section>
 
           {/* Architecture and Infrastructure */}
-          <Section id="architecture" title="System Architecture" icon={Layers}>
+          <Section id="architecture" title="System Architecture" icon={Layers as any}>
             <div className="space-y-6">
               <div className="glass-effect p-6 rounded-lg">
                 <h3 className="text-lg font-semibold text-golden mb-4">Application Architecture</h3>
@@ -482,7 +482,7 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
           </Section>
 
           {/* Testing and Quality Assurance */}
-          <Section id="testing" title="Testing & Quality Assurance" icon={Shield}>
+          <Section id="testing" title="Testing & Quality Assurance" icon={Shield as any}>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="glass-effect p-4 rounded-lg">
                 <h3 className="text-lg font-semibold text-golden mb-3">Smart Contract Testing</h3>
@@ -521,7 +521,9 @@ export function ProjectDetails({ onNavigateToApp }: ProjectDetailsProps) {
               className="group w-full flex items-center justify-center gap-4 px-8 py-4 btn-golden rounded-xl text-lg font-bold hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-yellow-500/30"
             >
               <span>Go to Web Application</span>
-              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
+              <div className="group-hover:translate-x-1 transition-transform duration-300">
+                <ArrowRight size={20} />
+              </div>
             </button>
           </div>
         </div>

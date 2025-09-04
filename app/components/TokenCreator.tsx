@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react'
 import { useAccount, useChainId } from 'wagmi'
-import { Plus, AlertCircle, Info } from 'lucide-react'
-import { getChainName, getFaucetUrl } from '@/lib/chains'
+import { Plus, AlertCircle, Info, Loader2, CheckCircle, ExternalLink } from 'lucide-react'
+import { getChainName, getFaucetUrl, getTransactionUrl } from '@/lib/chains'
 
 interface DeployedToken {
   address: string

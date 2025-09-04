@@ -4,7 +4,6 @@ import { Chain } from 'viem'
 export const mumbai: Chain = {
   id: 80001,
   name: 'Polygon Mumbai',
-  network: 'mumbai',
   nativeCurrency: {
     decimals: 18,
     name: 'MATIC',
@@ -25,7 +24,6 @@ export const mumbai: Chain = {
 export const bscTestnet: Chain = {
   id: 97,
   name: 'BNB Smart Chain Testnet',
-  network: 'bsc-testnet',
   nativeCurrency: {
     decimals: 18,
     name: 'BNB',
@@ -72,7 +70,7 @@ export const getChainName = (chainId: number): string => {
 
 export const getBlockExplorerUrl = (chainId: number): string => {
   const chain = getChainById(chainId)
-  return chain?.blockExplorers.default.url || ''
+  return chain?.blockExplorers?.default?.url || ''
 }
 
 export const getTransactionUrl = (chainId: number, txHash: string): string => {

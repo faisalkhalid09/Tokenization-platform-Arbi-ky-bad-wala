@@ -291,31 +291,31 @@ export const readTokenInfo = async (
 ): Promise<TokenInfo> => {
   try {
     const [name, symbol, decimals, totalSupply, owner] = await Promise.all([
-      readContract(config, {
+      readContract(config as any, {
         address: tokenAddress as `0x${string}`,
         abi: MYTOKEN_ABI,
         functionName: 'name',
         chainId,
       }),
-      readContract(config, {
+      readContract(config as any, {
         address: tokenAddress as `0x${string}`,
         abi: MYTOKEN_ABI,
         functionName: 'symbol',
         chainId,
       }),
-      readContract(config, {
+      readContract(config as any, {
         address: tokenAddress as `0x${string}`,
         abi: MYTOKEN_ABI,
         functionName: 'decimals',
         chainId,
       }),
-      readContract(config, {
+      readContract(config as any, {
         address: tokenAddress as `0x${string}`,
         abi: MYTOKEN_ABI,
         functionName: 'totalSupply',
         chainId,
       }),
-      readContract(config, {
+      readContract(config as any, {
         address: tokenAddress as `0x${string}`,
         abi: MYTOKEN_ABI,
         functionName: 'owner',
@@ -345,14 +345,14 @@ export const readTokenBalance = async (
 ): Promise<TokenBalance> => {
   try {
     const [balance, decimals] = await Promise.all([
-      readContract(config, {
+      readContract(config as any, {
         address: tokenAddress as `0x${string}`,
         abi: MYTOKEN_ABI,
         functionName: 'balanceOf',
         args: [userAddress as `0x${string}`],
         chainId,
       }),
-      readContract(config, {
+      readContract(config as any, {
         address: tokenAddress as `0x${string}`,
         abi: MYTOKEN_ABI,
         functionName: 'decimals',
@@ -383,7 +383,7 @@ export const mintTokens = async (
   amount: string,
   chainId: number
 ): Promise<string> => {
-  const hash = await writeContract(config, {
+  const hash = await writeContract(config as any, {
     address: tokenAddress as `0x${string}`,
     abi: MYTOKEN_ABI,
     functionName: 'mint',
@@ -400,7 +400,7 @@ export const burnTokens = async (
   decimals: number,
   chainId: number
 ): Promise<string> => {
-  const hash = await writeContract(config, {
+  const hash = await writeContract(config as any, {
     address: tokenAddress as `0x${string}`,
     abi: MYTOKEN_ABI,
     functionName: 'burn',
@@ -418,7 +418,7 @@ export const transferTokens = async (
   decimals: number,
   chainId: number
 ): Promise<string> => {
-  const hash = await writeContract(config, {
+  const hash = await writeContract(config as any, {
     address: tokenAddress as `0x${string}`,
     abi: MYTOKEN_ABI,
     functionName: 'transfer',
@@ -431,7 +431,7 @@ export const transferTokens = async (
 
 // Wait for transaction confirmation
 export const waitForTransaction = async (hash: string, chainId: number) => {
-  return await waitForTransactionReceipt(config, {
+  return await waitForTransactionReceipt(config as any, {
     hash: hash as `0x${string}`,
     chainId,
   })
